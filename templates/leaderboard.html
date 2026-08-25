@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 2rem auto;">
+    <h2 style="margin-bottom: 10px; text-align: center;">🏆 Global Standings</h2>
+    <p style="color: #666; text-align: center; margin-bottom: 25px;">See how your prediction accuracy stacks up against other players.</p>
+    
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="border-bottom: 2px solid #edf2f7; color: #4a5568; font-weight: bold;">
+                <th style="padding: 12px 8px; width: 20%;">Rank</th>
+                <th style="padding: 12px 8px; width: 55%;">Player Name</th>
+                <th style="padding: 12px 8px; width: 25%; text-align: right;">Total Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr style="border-bottom: 1px solid #edf2f7; {% if user['username'] == session['username'] %}background: #ebf8ff; font-weight: bold;{% endif %}">
+                <td style="padding: 12px 8px;">
+                    <!-- Visual rank tracking anchors -->
+                    {% if loop.index == 1 %}1
+                    {% elif loop.index == 2 %}2
+                    {% elif loop.index == 3 %}3
+                    {% else %}{{ loop.index }}
+                    {% endif %}
+                </td>
+                <td style="padding: 12px 8px;">
+                    {{ user['username'] }}
+                    {% if user['username'] == session['username'] %}
+                        <span style="font-size: 0.75rem; background: #3182ce; color: white; padding: 2px 6px; border-radius: 10px; margin-left: 5px;">You</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 12px 8px; text-align: right; color: #2b6cb0; font-weight: bold;">
+                    {{ user['score'] }} pts
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

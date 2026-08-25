@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="max-width: 450px; margin: 40px auto; padding: 30px;">
+    <h2 style="margin-top: 0; margin-bottom: 20px;">Create Account</h2>
+    
+    <form method="POST" action="{{ url_for('register') }}" id="register-form">
+        <!-- Username Field -->
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #4a5568;">
+                Username <span style="color: #e53e3e;">*</span>
+            </label>
+            <input type="text" id="reg-username" name="username" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px;">
+
+            <!-- DYNAMIC LIVE ERROR MESSAGE DISPLAY PANEL -->
+            <div id="username-error-msg" style="color: #e53e3e; font-size: 0.85rem; font-weight: bold; margin-top: 5px; display: none;">
+                This username is already in use.
+            </div>
+        </div>
+
+        <!-- Password Field -->
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; font-weight: bold; margin-bottom: 5px; color: #4a5568;">
+                Password <span style="color: #e53e3e;">*</span>
+            </label>
+            <input type="password" id="reg-password" name="password" required style="width: 100%; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px;">
+        </div>
+
+        <!-- LIVE REQUIREMENTS FEEDBACK PANEL -->
+        <div id="password-requirements" style="background: #f7fafc; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 0.85rem; border: 1px solid #e2e8f0;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 15px;">
+                <div id="req-length" class="req-item invalid" style="color: #e53e3e; font-weight: 600;">❌ At least 12 characters</div>
+                <div id="req-upper" class="req-item invalid" style="color: #e53e3e; font-weight: 600;">❌ At least one uppercase letter</div>
+                <div id="req-lower" class="req-item invalid" style="color: #e53e3e; font-weight: 600;">❌ At least one lowercase letter</div>
+                <div id="req-number" class="req-item invalid" style="color: #e53e3e; font-weight: 600;">❌ At least one number or symbol</div>
+                <div id="req-word" class="req-item invalid" style="color: #e53e3e; font-weight: 600; grid-column: span 2;">❌ Cannot contain the word "password" or your username</div>
+            </div>
+        </div>
+
+        <!-- Initially Disabled Register Button -->
+        <button type="submit" id="register-btn" disabled class="btn" style="width: 100%; padding: 10px; background: #cbd5e0; color: #718096; cursor: not-allowed; font-weight: bold; border: none; border-radius: 4px;">
+            Register
+        </button>
+    </form>
+</div>
+{% endblock %}

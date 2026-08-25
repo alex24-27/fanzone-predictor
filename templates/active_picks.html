@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1 style="margin-bottom: 5px;">My Active Picks</h1>
+<p style="color: #666; margin-bottom: 25px;">View all open and in-progress picks. You can edit a pick until its event starts.</p>
+
+{% if active_picks %}
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(430px, 1fr)); gap: 20px;">
+	{% for pick in active_picks %}
+	<div id="game-card-{{ pick['game_id'] }}" class="card game-card" data-time="{{ pick['game_date'] }}" style="margin-bottom: 0; display: flex; flex-direction: column; justify-content: space-between;">
+		{% set cap = cap_info.get(pick['game_id'], {}) %}
+		<div>
+			<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px;">
+				<span style="background: #e2e8f0; color: #4a5568; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">
+					{{ pick['league'] }}
+				</span>
+			</div>
+
+			<div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+				<span style="font-size: 1.1rem; font-weight: 600; text-align: left; width: 40%;">{{ pick['home_team'] }}</span>
+				<span style="color: #a0aec0; font-weight: bold; font-size: 0.9rem;">VS</span>
+				<span style="font-size: 1.1rem; font-weight: 600; text-align: right; width: 40%;">{{ pick['away_team'] }}</span>
+			</div>
+
+			<p style="font-size: 0.85rem; color: #4a5568; margin-bottom: 15px; font-weight: 600;">
+				Starts:
+				<span class="local-time" data-utc="{{ pick['game_date'] }}">{{ pick['game_date'] }} (UTC)</span>
+			</p>
+
+			<p style="font-size: 0.82rem; color: #4a5568; margin-bottom: 12px;">
+				<strong>{{ pick['home_team'] }}</strong>:
+				<span class="{% if cap.get('home_full') %}count-full{% else %}count-normal{% endif %}" style="font-weight: 700;">{{ cap.get('home_count', 0) }}/{{ team_pick_cap }}</span>
+				|
+				<strong>{{ pick['away_team'] }}</strong>:
+				<span class="{% if cap.get('away_full') %}count-full{% else %}count-normal{% endif %}" style="font-weight: 700;">{{ cap.get('away_count', 0) }}/{{ team_pick_cap }}</span>
+			</p>
+
+			{% if cap.get('both_full') %}
+			<div style="background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; padding: 8px 10px; border-radius: 6px; font-size: 0.82rem; margin-bottom: 12px;">
+				This event is locked. Both teams have reached the {{ team_pick_cap }}-user maximum.
+			</div>
+			{% elif cap.get('picker_locked_for_user') %}
+			<div style="background: #fffaf0; border: 1px solid #f6ad55; color: #9c4221; padding: 8px 10px; border-radius: 6px; font-size: 0.82rem; margin-bottom: 12px;">
+				Switching is locked because the opposite team has already reached {{ team_pick_cap }} picks.
+			</div>
+			{% endif %}
+		</div>
+
+		<form method="POST" action="{{ url_for('active_picks') }}" class="match-form" data-kickoff="{{ pick['game_date'] }}" style="border-top: 1px solid #edf2f7; padding-top: 15px;">
+			<input type="hidden" name="game_id" value="{{ pick['game_id'] }}">
+
+			<div style="display: flex; gap: 10px; align-items: center;">
+				<label style="font-size: 0.9rem; font-weight: bold; color: #4a5568;">Your Pick:</label>
+
+				<select name="predicted_winner" class="pick-input pick-select" data-original="{{ pick['predicted_winner'] }}" data-cap-locked="{{ 'true' if cap.get('picker_locked_for_user') else 'false' }}" {% if cap.get('picker_locked_for_user') %}disabled{% endif %} style="flex-grow: 1; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px;">
+					<option value="{{ pick['home_team'] }}" {% if pick['predicted_winner'] == pick['home_team'] %}selected{% endif %} {% if cap.get('home_full') and pick['predicted_winner'] != pick['home_team'] %}disabled{% endif %}>
+						{{ pick['home_team'] }} (Home)
+					</option>
+					<option value="{{ pick['away_team'] }}" {% if pick['predicted_winner'] == pick['away_team'] %}selected{% endif %} {% if cap.get('away_full') and pick['predicted_winner'] != pick['away_team'] %}disabled{% endif %}>
+						{{ pick['away_team'] }} (Away)
+					</option>
+				</select>
+
+				<button type="submit" class="btn submit-btn save-btn" disabled style="padding: 8px 15px; font-size: 0.9rem; background: #94a3b8; color: white; cursor: not-allowed;">
+					{% if cap.get('picker_locked_for_user') %}Locked{% else %}Saved{% endif %}
+				</button>
+			</div>
+
+			<div class="form-feedback" style="display: none; margin-top: 8px; font-size: 0.85rem;"></div>
+		</form>
+	</div>
+	{% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align: center; padding: 35px 20px;">
+	<h3 style="margin-top: 0; color: #4a5568;">No Active Picks Yet</h3>
+	<p style="margin-bottom: 20px; color: #718096;">Once you make picks for upcoming events, they will appear here.</p>
+	<a href="{{ url_for('dashboard') }}" class="btn" style="padding: 10px 16px; text-decoration: none;">Make Picks on Dashboard</a>
+</div>
+{% endif %}
+
+{% endblock %}

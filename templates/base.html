@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free to Play Sports Predictor</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+
+<body>
+    <!-- RESPONSIVE GLOBAL HEADER NAVIGATION FRAMEWORK -->
+    <nav style="background: #2b6cb0; padding: 15px 20px; color: white; position: relative; z-index: 1000; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+        <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+        
+            <!-- Brand Logo (Links to dashboard if logged in, otherwise redirects to login page) -->
+            {% if session.get('user_id') %}
+                <a href="{{ url_for('dashboard') }}" style="color: white; text-decoration: none; font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                    <span style="letter-spacing: -0.5px;">FanZone Predictor</span>
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" style="color: white; text-decoration: none; font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                    <span style="letter-spacing: -0.5px;">FanZone Predictor</span>
+                </a>
+            {% endif %}
+
+            <!-- DESKTOP NAVIGATION LAYOUT -->
+            <div class="nav-desktop" style="display: flex; gap: 20px; align-items: center;">
+                {% if session.get('user_id') %}
+                    <!-- Protected System Core Links -->
+                    <a href="{{ url_for('dashboard') }}" style="color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Dashboard</a>
+                    <a href="{{ url_for('active_picks') }}" style="color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Active Picks</a>
+                    <a href="{{ url_for('leaderboard') }}" style="color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Leaderboard</a>
+                    <a href="{{ url_for('analytics') }}" style="color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem;">My Analytics</a>
+                    <a href="{{ url_for('logout') }}" style="background: rgba(255,255,255,0.15); color: white; text-decoration: none; font-weight: bold; padding: 6px 14px; border-radius: 4px; font-size: 0.9rem;">Logout</a>
+                {% else %}
+                    <!-- Public Authorization Setup Utilities -->
+                    <a href="{{ url_for('login') }}" style="color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem;">Sign In</a>
+                    <a href="{{ url_for('register') }}" style="background: #ffffff; color: #2b6cb0; text-decoration: none; font-weight: bold; padding: 6px 14px; border-radius: 4px; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">Register</a>
+                {% endif %}
+                <!-- Help link placed outside the conditional block so everyone can access it -->
+                <a href="{{ url_for('help_page') }}" style="color: white; text-decoration: none; font-weight: 600; font-size: 0.95rem; margin-left: 10px;">Help</a>
+            </div>
+
+            <!-- Mobile Menu Toggle Button (Hamburger icon hidden on desktop layouts) -->
+            <button id="mobile-menu-btn" style="display: none; background: none; border: none; color: white; font-size: 1.6rem; cursor: pointer; padding: 0; line-height: 1; outline: none;">
+                ☰
+            </button>
+        </div>
+
+            <!-- MOBILE DROPDOWN DRAWER ELEMENT -->
+            <div id="mobile-dropdown-drawer" style="display: none; position: absolute; top: 100%; left: 0; width: 100%; background: #2b6cb0; border-top: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 10px 0;">
+                <div style="display: flex; flex-direction: column;">
+                    {% if session.get('user_id') %}
+                        <!-- Protected System Mobile Links -->
+                        <a href="{{ url_for('dashboard') }}" class="mobile-nav-link" style="color: white; text-decoration: none; font-weight: 600; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">Dashboard</a>
+                        <a href="{{ url_for('active_picks') }}" class="mobile-nav-link" style="color: white; text-decoration: none; font-weight: 600; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">Active Picks</a>
+                        <a href="{{ url_for('leaderboard') }}" class="mobile-nav-link" style="color: white; text-decoration: none; font-weight: 600; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">Leaderboard</a>
+                        <a href="{{ url_for('analytics') }}" class="mobile-nav-link" style="color: white; text-decoration: none; font-weight: 600; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">My Analytics</a>
+                        <a href="{{ url_for('logout') }}" class="mobile-nav-link" style="color: #fed7d7; text-decoration: none; font-weight: bold; padding: 12px 20px; background: rgba(0,0,0,0.05);">Logout</a>
+                    {% else %}
+                        <!-- Public Mobile Authentication Actions -->
+                        <a href="{{ url_for('login') }}" class="mobile-nav-link" style="color: white; text-decoration: none; font-weight: 600; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">Sign In</a>
+                        <a href="{{ url_for('register') }}" class="mobile-nav-link" style="color: #fff; text-decoration: none; font-weight: bold; padding: 12px 20px; background: rgba(255,255,255,0.1);">Register</a>
+                    {% endif %}
+                    <!-- Mobile Help Link -->
+                    <a href="{{ url_for('help_page') }}" class="mobile-nav-link" style="color: white; text-decoration: none; font-weight: 600; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">Help</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const timeElements = document.querySelectorAll('.local-time');
+            const now = new Date(); // Current user time
+
+            function setFormFeedback(form, message, tone) {
+                const feedback = form ? form.querySelector('.form-feedback') : null;
+                if (!feedback) return;
+
+                if (!message) {
+                    feedback.style.display = 'none';
+                    feedback.textContent = '';
+                    return;
+                }
+
+                feedback.style.display = 'block';
+                feedback.textContent = message;
+                if (tone === 'success') {
+                    feedback.style.color = '#2f855a';
+                } else {
+                    feedback.style.color = '#c53030';
+                }
+            }
+
+            // Convert UTC strings to User Local Time
+            timeElements.forEach(function (element) {
+                const utcString = element.getAttribute('data-utc');
+                if (utcString) {
+                    try {
+                        const dateObj = new Date(utcString);
+                        const formatOptions = {
+                            year: 'numeric', month: 'short', day: 'numeric',
+                            hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+                        };
+                        element.textContent = dateObj.toLocaleString(undefined, formatOptions);
+                    } catch (e) {
+                        console.error("Error parsing date:", e);
+                    }
+                }
+            });
+
+            // Scan forms and lock them if the game has kicked off
+            const matchForms = document.querySelectorAll('.match-form');
+            matchForms.forEach(function (form) {
+                const kickoffStr = form.getAttribute('data-kickoff');
+                if (kickoffStr) {
+                    const kickoffTime = new Date(kickoffStr);
+
+                    // If current time is greater than or equal to kickoff time, lock it down
+                    if (now >= kickoffTime) {
+                        const selectElement = form.querySelector('.pick-input');
+                        const buttonElement = form.querySelector('.submit-btn');
+
+                        // Disable interactive fields
+                        if (selectElement) selectElement.disabled = true;
+
+                        if (buttonElement) {
+                            buttonElement.disabled = true;
+                            buttonElement.textContent = "Locked";
+                            buttonElement.style.background = "#94a3b8"; // Slate gray color to indicate disabled state
+                            buttonElement.style.cursor = "not-allowed";
+                        }
+
+                        // Dim the card container slightly to visually indicate it is closed
+                        const cardContainer = form.closest('.card');
+                        if (cardContainer) {
+                            cardContainer.style.opacity = "0.75";
+                            cardContainer.style.borderLeft = "4px solid #94a3b8";
+                        }
+                    }
+                }
+                form.addEventListener('submit', function(event) {
+                    // Prevent the browser from reloading the page
+                    event.preventDefault();
+                    
+                    const saveBtn = form.querySelector('.save-btn');
+                    const selectEl = form.querySelector('.pick-select');
+                    const gameCard = form.closest('.game-card');
+
+                    if (!selectEl || selectEl.disabled) {
+                        setFormFeedback(form, 'This event is currently locked and cannot be updated.', 'error');
+                        return;
+                    }
+
+                    setFormFeedback(form, '', 'error');
+                    
+                    // Visual indicator that saving is in progress
+                    saveBtn.setAttribute('disabled', 'true');
+                    saveBtn.textContent = "Saving...";
+                    
+                    // Package form input parameters into standard post formatting payload
+                    const formData = new FormData(form);
+                    
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest' // Tells Flask this is a background fetch call
+                        }
+                    })
+                    .then(function(response) {
+                        if (!response.ok) {
+                            // If server returns an error status, parse JSON when possible and bubble readable message.
+                            return response.text().then(function(text) {
+                                let errorMessage = 'Submission rejected.';
+                                try {
+                                    const errData = JSON.parse(text);
+                                    errorMessage = errData.message || errorMessage;
+                                } catch (parseErr) {
+                                    if (text && text.trim().length > 0) {
+                                        errorMessage = 'Submission rejected. Please refresh and try again.';
+                                    }
+                                }
+                                throw new Error(errorMessage);
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Update the original tracking attribute value status to current choice state
+                            selectEl.setAttribute('data-original', selectEl.value);
+                            
+                            saveBtn.setAttribute('disabled', 'true');
+                            saveBtn.style.background = "#94a3b8";
+                            saveBtn.style.color = "white";
+                            saveBtn.style.cursor = "not-allowed";
+                            saveBtn.textContent = "Saved";
+                            
+                            // FLASH HIGHLIGHT FOCUS EFFECT: Apply styling to emphasize the targeted element card
+                            if (gameCard) {
+                                const originalBorder = gameCard.style.borderColor || '#edf2f7';
+                                const originalShadow = gameCard.style.boxShadow || 'none';
+                                
+                                // Apply highlight accent outline border styles
+                                gameCard.style.borderColor = "#38a169"; // Green border line
+                                gameCard.style.boxShadow = "0 0 12px rgba(56, 161, 105, 0.4)";
+                                
+                                // Smoothly fade back out to the base palette after 1.5 seconds
+                                setTimeout(function() {
+                                    gameCard.style.borderColor = originalBorder;
+                                    gameCard.style.boxShadow = originalShadow;
+                                }, 1500);
+                            }
+
+                            setFormFeedback(form, 'Saved successfully.', 'success');
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Submission failed:", err);
+                        setFormFeedback(form, err.message || 'Unable to save this pick.', 'error');
+                        saveBtn.removeAttribute('disabled');
+                        saveBtn.textContent = "Save";
+                    });
+                });
+            });
+
+            // Enable the Save button only when a real team option is chosen
+            const pickSelects = document.querySelectorAll('.pick-select');
+
+            pickSelects.forEach(function (select) {
+                select.addEventListener('change', function () {
+                    const form = select.closest('.match-form');
+                    const saveBtn = form.querySelector('.save-btn');
+                    const originalValue = select.getAttribute('data-original');
+                    const currentValue = select.value;
+
+                    if (select.disabled || select.getAttribute('data-cap-locked') === 'true') {
+                        saveBtn.disabled = true;
+                        saveBtn.style.background = "#94a3b8";
+                        saveBtn.style.color = "white";
+                        saveBtn.style.cursor = "not-allowed";
+                        saveBtn.textContent = "Locked";
+                        return;
+                    }
+
+                    // Ensure we aren't modifying an already locked past-game button
+                    if (saveBtn && saveBtn.textContent !== "Locked") {
+                        if (select.value !== "" && select.value !== originalValue) {
+                            // Restore button back to normal clickable blue state
+                            saveBtn.disabled = false;
+                            saveBtn.style.background = "#3498db";
+                            saveBtn.style.color = "white";
+                            saveBtn.style.cursor = "pointer";
+                            saveBtn.textContent = "Save";
+                        } else {
+                            // Gray out the button if it returns to an empty choice or the original selection
+                            saveBtn.disabled = true;
+                            saveBtn.style.background = "#94a3b8";
+                            saveBtn.style.color = "white";
+                            saveBtn.style.cursor = "not-allowed";
+                            saveBtn.textContent = "Saved";
+                        }
+                    }
+                });
+            });
+
+            // INSTANT MULTI-SPORT FILTER AND TIME-SORT LOGIC
+            // --- DYNAMIC PREFERENCES STORAGE AND PERSISTENCE CONTROL ---
+            const filters = document.querySelectorAll('.sport-filter');
+            const sortSelect = document.getElementById('sort-order');
+            const gridContainer = document.getElementById('match-grid');
+
+            // Restore checked states immediately on page render using variables from Flask
+            const serverRestoredFilters = [{% for f in saved_filters %}"{{ f }}"{% if not loop.last %}, {% endif %} {% endfor %}];
+            if (serverRestoredFilters.length > 0 && filters.length > 0) {
+                filters.forEach(cb => {
+                    cb.checked = serverRestoredFilters.includes(cb.value);
+                });
+            }
+
+            function updateDashboardDisplay() {
+                if (!gridContainer) return;
+
+                // Gather all current sport categories checked by the user
+                const checkedSports = Array.from(filters)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+
+                const csvFilterString = checkedSports.join(',');
+
+                // Push the active filters string to every hidden input on the page
+                document.querySelectorAll('.hidden-filters-field').forEach(inputField => {
+                    inputField.value = csvFilterString;
+                });
+
+                const cards = Array.from(document.querySelectorAll('.game-card'));
+                let visibleCount = 0;
+
+                cards.forEach(function (card) {
+                    const cardSport = card.getAttribute('data-sport');
+                    if (checkedSports.includes(cardSport)) {
+                        card.style.display = "flex";
+                        visibleCount++;
+                    } else {
+                        card.style.display = "none";
+                    }
+                });
+
+                const alertBox = document.getElementById('no-matches-alert');
+                if (alertBox) {
+                    alertBox.style.display = (visibleCount === 0) ? "block" : "none";
+                }
+
+                // Process chronological list sorting layout logic
+                const sortValue = sortSelect ? sortSelect.value : 'earliest';
+                cards.sort(function (a, b) {
+                    const timeA = new Date(a.getAttribute('data-time'));
+                    const timeB = new Date(b.getAttribute('data-time'));
+                    return (sortValue === 'earliest') ? (timeA - timeB) : (timeB - timeA);
+                });
+
+                cards.forEach(card => gridContainer.appendChild(card));
+            }
+
+            // Register state listeners to monitor filter adjustments
+            filters.forEach(checkbox => checkbox.addEventListener('change', updateDashboardDisplay));
+            if (sortSelect) {
+                sortSelect.addEventListener('change', updateDashboardDisplay);
+            }
+
+            // Attach active click and choice listeners to UI controls
+            filters.forEach(checkbox => checkbox.addEventListener('change', updateDashboardDisplay));
+            if (sortSelect) {
+                sortSelect.addEventListener('change', updateDashboardDisplay);
+            }
+
+            // --- DYNAMIC REGISTRATION VALIDATION ENGINE WITH LIVE DATABASE LOOKUPS ---
+            const regForm = document.getElementById('register-form');
+            if (regForm) {
+                const userInp = document.getElementById('reg-username');
+                const passInp = document.getElementById('reg-password');
+                const regBtn = document.getElementById('register-btn');
+                const userError = document.getElementById('username-error-msg');
+
+                let usernameIsTaken = false; // System state safety track flag
+                let debounceTimer;           // Prevents API spamming on every keystroke
+
+                function evaluateFormValidity() {
+                    const username = userInp.value;
+                    const password = passInp.value;
+
+                    // Perform evaluation checks against the character string
+                    const hasLength = password.length >= 12;
+                    const hasUpper = /[A-Z]/.test(password);
+                    const hasLower = /[a-z]/.test(password);
+                    const hasNumSym = /[\d\W_]/.test(password);
+
+                    // Ensure string doesn't contain forbidden substrings
+                    const passLower = password.toLowerCase();
+                    const userLower = username.toLowerCase();
+                    const wordValid = !passLower.includes('password') && (userLower === "" || !passLower.includes(userLower));
+
+                    // Helper function to update feedback style layout mechanics
+                    function toggleUI(id, isValid, validText, invalidText) {
+                        const el = document.getElementById(id);
+                        if (isValid) {
+                            el.innerHTML = `✓ ${validText}`;
+                            el.style.color = "#38a169"; // Theme Green
+                        } else {
+                            el.innerHTML = `× ${invalidText}`;
+                            el.style.color = "#e53e3e"; // Theme Red
+                        }
+                    }
+
+                    toggleUI('req-length', hasLength, 'Contains 12+ characters', 'At least 12 characters');
+                    toggleUI('req-upper', hasUpper, 'Contains uppercase letter', 'At least one uppercase letter');
+                    toggleUI('req-lower', hasLower, 'Contains lowercase letter', 'At least one lowercase letter');
+                    toggleUI('req-number', hasNumSym, 'Contains number or symbol', 'At least one number or symbol');
+                    toggleUI('req-word', wordValid, 'Does not contain the word "password" or your username', 'Cannot contain the word "password" or your username');
+
+                    // Check overall form validity status to activate submit interaction
+                    const checksPassed = hasLength && hasUpper && hasLower && hasNumSym && wordValid && username.trim() !== "";
+                    const formIsValid = checksPassed && !usernameIsTaken;
+                    if (formIsValid) {
+                        regBtn.removeAttribute('disabled');
+                        regBtn.style.background = "#3182ce"; // Actively colored blue button
+                        regBtn.style.color = "#ffffff";
+                        regBtn.style.cursor = "pointer";
+                    } else {
+                        regBtn.setAttribute('disabled', 'true');
+                        regBtn.style.background = "#cbd5e0";
+                        regBtn.style.color = "#718096";
+                        regBtn.style.cursor = "not-allowed";
+                    }
+                }
+                // Background function that polls the server API endpoint
+                function checkUsernameAvailability() {
+                    const username = userInp.value.trim();
+
+                    if (username === "") {
+                        usernameIsTaken = false;
+                        userError.style.display = "none";
+                        evaluateFormValidity();
+                        return;
+                    }
+
+                    // Fetch API request payload context wrapper
+                    fetch('/api/check-username', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: username })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.exists) {
+                                usernameIsTaken = true;
+                                userError.style.display = "block"; // Instantly show error message
+                            } else {
+                                usernameIsTaken = false;
+                                userError.style.display = "none";  // Clear error if available
+                            }
+                            evaluateFormValidity(); // Re-verify button locking status
+                        })
+                        .catch(err => console.error("Username checking failed:", err));
+                }
+
+                // Listeners tracking keystroke behaviors
+                userInp.addEventListener('input', function () {
+                    // Reset the timer on every keystroke
+                    clearTimeout(debounceTimer);
+                    // Wait 300ms after typing stops before sending the database request
+                    debounceTimer = setTimeout(checkUsernameAvailability, 300);
+                });
+
+                passInp.addEventListener('input', evaluateFormValidity);
+            }
+
+            // --- DYNAMIC LOGIN ACTION VALIDATION ---
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                const logUser = document.getElementById('login-username');
+                const logPass = document.getElementById('login-password');
+                const logBtn = document.getElementById('login-btn');
+
+                function checkLoginInputs() {
+                    if (logUser.value.trim() !== "" && logPass.value.trim() !== "") {
+                        logBtn.removeAttribute('disabled');
+                        logBtn.style.background = "#3182ce";
+                        logBtn.style.color = "#ffffff";
+                        logBtn.style.cursor = "pointer";
+                    } else {
+                        logBtn.setAttribute('disabled', 'true');
+                        logBtn.style.background = "#cbd5e0";
+                        logBtn.style.color = "#718096";
+                        logBtn.style.cursor = "not-allowed";
+                    }
+                }
+
+                logUser.addEventListener('input', checkLoginInputs);
+                logPass.addEventListener('input', checkLoginInputs);
+            }
+
+            updateDashboardDisplay();
+
+            // --- AUTOMATED PREDICTION LOG TIMESTAMP LOCALIZATION ---
+            const logTimes = document.querySelectorAll('.log-time');
+            logTimes.forEach(function (element) {
+                const rawUtcString = element.getAttribute('data-utc');
+                if (rawUtcString) {
+                    const utcDate = new Date(rawUtcString);
+
+                    // Check for invalid dates before formatting
+                    if (!isNaN(utcDate.getTime())) {
+                        const formattedDate = utcDate.toLocaleString(undefined, {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        element.textContent = formattedDate;
+                    }
+                }
+            });
+
+            // --- MOBILE NAVIGATION DROPDOWN INTERACTION CONTROL ---
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const dropdownDrawer = document.getElementById('mobile-dropdown-drawer');
+
+            if (menuBtn && dropdownDrawer) {
+                menuBtn.addEventListener('click', function(event) {
+                    // Prevent event from bubbling down immediately to window click checks
+                    event.stopPropagation();
+        
+                    if (dropdownDrawer.style.display === 'none' || dropdownDrawer.style.display === '') {
+                        dropdownDrawer.style.display = 'block';
+                        menuBtn.innerHTML = '✕'; // Swap menu icon out with a crisp closing cross
+                    } else {
+                        dropdownDrawer.style.display = 'none';
+                        menuBtn.innerHTML = '☰';
+                    }
+                });
+
+                // Close the dropdown immediately if a user clicks anywhere outside of the menu container drawer
+                window.addEventListener('click', function() {
+                    if (dropdownDrawer.style.display === 'block') {
+                        dropdownDrawer.style.display = 'none';
+                        menuBtn.innerHTML = '☰';
+                    }
+                });
+            }
+
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 style="margin-bottom: 5px;">Upcoming Matches</h1>
+<p style="color: #666; margin-bottom: 25px;">Pick the winning teams across your favorite sports leagues below.</p>
+
+<!-- FILTER AND SORT CONTROLS PANEL -->
+<div class="card" style="background: #edf2f7; padding: 15px; margin-bottom: 25px; border-radius: 8px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-between; align-items: center;">
+        
+        <!-- Multi-Select Checkboxes grouped by overarching sport types -->
+        <div>
+            <span style="font-weight: bold; color: #4a5568; margin-right: 10px; display: inline-block; margin-bottom: 5px;">Filter Sports:</span>
+            <div style="display: inline-flex; flex-wrap: wrap; gap: 12px;">
+                <label style="font-weight: 600; cursor: pointer;"><input type="checkbox" class="sport-filter" value="football" checked style="margin-right: 4px;"> Football (NFL/NCAA)</label>
+                <label style="font-weight: 600; cursor: pointer;"><input type="checkbox" class="sport-filter" value="basketball" checked style="margin-right: 4px;"> Basketball (NBA/NCAA)</label>
+                <label style="font-weight: 600; cursor: pointer;"><input type="checkbox" class="sport-filter" value="soccer" checked style="margin-right: 4px;"> Soccer (MLS/World Cup)</label>
+                <label style="font-weight: 600; cursor: pointer;"><input type="checkbox" class="sport-filter" value="baseball" checked style="margin-right: 4px;"> Baseball (MLB)</label>
+                <label style="font-weight: 600; cursor: pointer;"><input type="checkbox" class="sport-filter" value="hockey" checked style="margin-right: 4px;"> Ice Hockey (NHL)</label>
+            </div>
+        </div>
+
+        <!-- Sort Direction Selector Dropdown -->
+        <div>
+            <label style="font-weight: bold; color: #4a5568; margin-right: 8px;">Sort Order:</label>
+            <select id="sort-order" style="padding: 6px 12px; border: 1px solid #cbd5e0; border-radius: 4px; font-weight: 600;">
+                <option value="earliest">Earliest to Latest (Soonest First)</option>
+                <option value="latest">Latest to Earliest</option>
+            </select>
+        </div>
+
+    </div>
+</div>
+
+<!-- THE MATCH GRID CONTAINER -->
+<div id="match-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 20px;">
+
+    <!-- DYNAMIC NO EVENTS ALERT CONTAINER -->
+    <div id="no-matches-alert" style="display: none; grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: #f7fafc; border: 2px dashed #cbd5e0; border-radius: 8px;">
+        <span style="font-size: 2.5rem; display: block; margin-bottom: 10px;"></span>
+        <h3 style="margin: 0 0 8px 0; color: #4a5568;">No Scheduled Events Found</h3>
+        <p style="margin: 0; color: #718096; font-size: 0.95rem;">Try checking additional sports league filters above to find matching fixtures.</p>
+    </div>
+
+    {% for game in games %}
+    
+    <!-- Categorize target groupings using specific keyword logic strings -->
+    {% set league_lower = game['league'] | lower %}
+    {% if 'football' in league_lower %}{% set sport_cat = 'football' %}
+    {% elif 'basketball' in league_lower %}{% set sport_cat = 'basketball' %}
+    {% elif 'soccer' in league_lower or 'cup' in league_lower %}{% set sport_cat = 'soccer' %}
+    {% elif 'baseball' in league_lower or 'mlb' in league_lower %}{% set sport_cat = 'baseball' %}
+    {% elif 'hockey' in league_lower or 'nhl' in league_lower %}{% set sport_cat = 'hockey' %}
+    {% else %}{% set sport_cat = 'other' %}
+    {% endif %}
+
+    <!-- Add 'game-card', 'data-sport', and 'data-time' tags to power client-side sorting scripts -->
+    <!-- Also add a dynamic unique id string tag to anchor and target visual focus -->
+    <div id="game-card-{{ game['id'] }}" class="card game-card" data-sport="{{ sport_cat }}" data-time="{{ game['game_date'] }}" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+        {% set cap = cap_info.get(game['id'], {}) %}
+        <div>
+            <span style="background: #e2e8f0; color: #4a5568; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">
+                {{ game['league'] }}
+            </span>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 15px 0;">
+                <span style="font-size: 1.1rem; font-weight: 600; text-align: left; width: 40%;">{{ game['home_team'] }}</span>
+                <span style="color: #a0aec0; font-weight: bold; font-size: 0.9rem;">VS</span>
+                <span style="font-size: 1.1rem; font-weight: 600; text-align: right; width: 40%;">{{ game['away_team'] }}</span>
+            </div>
+            <p style="font-size: 0.85rem; color: #4a5568; margin-bottom: 15px; font-weight: 600;">
+                Kickoff: 
+                <span class="local-time" data-utc="{{ game['game_date'] }}">
+                    {{ game['game_date'] }} (UTC)
+                </span>
+            </p>
+
+            <p style="font-size: 0.82rem; color: #4a5568; margin-bottom: 12px;">
+                <strong>{{ game['home_team'] }}</strong>:
+                <span class="{% if cap.get('home_full') %}count-full{% else %}count-normal{% endif %}" style="font-weight: 700;">{{ cap.get('home_count', 0) }}/{{ team_pick_cap }}</span>
+                |
+                <strong>{{ game['away_team'] }}</strong>:
+                <span class="{% if cap.get('away_full') %}count-full{% else %}count-normal{% endif %}" style="font-weight: 700;">{{ cap.get('away_count', 0) }}/{{ team_pick_cap }}</span>
+            </p>
+
+            {% if cap.get('both_full') %}
+            <div style="background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; padding: 8px 10px; border-radius: 6px; font-size: 0.82rem; margin-bottom: 12px;">
+                This event is locked. Both teams have reached the {{ team_pick_cap }}-user maximum.
+            </div>
+            {% endif %}
+        </div>
+
+        <form method="POST" action="{{ url_for('dashboard') }}" class="match-form" data-kickoff="{{ game['game_date'] }}" style="border-top: 1px solid #edf2f7; padding-top: 15px;">
+            <input type="hidden" name="game_id" value="{{ game['id'] }}">
+
+            <!-- DYNAMIC HIDDEN FILTER PERSISTENCE INPUT -->
+            <input type="hidden" name="active_filters" class="hidden-filters-field" value="">
+
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <label style="font-size: 0.9rem; font-weight: bold; color: #4a5568;">Your Pick:</label>
+                
+                <select name="predicted_winner" class="pick-input pick-select" data-original="{{ predictions.get(game['id']) }}" data-cap-locked="{{ 'true' if cap.get('picker_locked_for_user') else 'false' }}" {% if cap.get('picker_locked_for_user') %}disabled{% endif %} style="flex-grow: 1; padding: 8px; border: 1px solid #cbd5e0; border-radius: 4px;">
+                    <option value="" disabled {% if game['id'] not in predictions %}selected{% endif %}>Select a Team...</option>
+                    <option value="{{ game['home_team'] }}" {% if predictions.get(game['id']) == game['home_team'] %}selected{% endif %} {% if cap.get('home_full') and predictions.get(game['id']) != game['home_team'] %}disabled{% endif %}>
+                        {{ game['home_team'] }} (Home)
+                    </option>
+                    <option value="{{ game['away_team'] }}" {% if predictions.get(game['id']) == game['away_team'] %}selected{% endif %} {% if cap.get('away_full') and predictions.get(game['id']) != game['away_team'] %}disabled{% endif %}>
+                        {{ game['away_team'] }} (Away)
+                    </option>
+                </select>
+                
+                <button type="submit" class="btn submit-btn save-btn" 
+                            disabled style="padding: 8px 15px; font-size: 0.9rem; background: #94a3b8; color: white; cursor: not-allowed;">
+                    {% if cap.get('picker_locked_for_user') %}Locked{% else %}Saved{% endif %}
+                </button>
+            </div>
+
+            <div class="form-feedback" style="display: none; margin-top: 8px; font-size: 0.85rem;"></div>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
