@@ -31,7 +31,7 @@ First, ensure you have Python 3.8+ and Git successfully installed on your comput
     ```bash
     python -m venv venv
     ```
-3. Run the following command to activate the virtual environment:
+3. Run one of the following commands based on your operating system to activate the virtual environment:
    | Command | Operating System |
    |---------|------------------|
    | `source venv/bin/activate` | macOS/Linux |
