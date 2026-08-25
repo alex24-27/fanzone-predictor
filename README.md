@@ -33,7 +33,7 @@ First, ensure you have Python 3.8+ and Git successfully installed on your comput
     ```
 3. Run the following command to activate the virtual environment:
    | Command | Operating System |
-|---------|-------------|
-| `source venv/bin/activate` | macOS/Linux |
-| `venv\Scripts\activate` | Windows (Command Prompt) |
-| `.\venv\Scripts\Activate.ps1` | Windows (PowerShell) |
+   |---------|------------------|
+   | `source venv/bin/activate` | macOS/Linux |
+   | `venv\Scripts\activate` | Windows (Command Prompt) |
+   | `.\venv\Scripts\Activate.ps1` | Windows (PowerShell) |
