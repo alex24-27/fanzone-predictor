@@ -11,7 +11,7 @@ A secure, responsive full-stack web application designed for logging, tracking, 
 - Backend: Python with Flask
 - Frontend: HTML with CSS
 - Data Metrics Engine: Chart.js
-- External Integration Source: TheSportsDB API
+- External Integration Source: TheSportsDB API (https://www.thesportsdb.com/documentation)
 ## Setup and Installation
 First, ensure you have Python 3.8+ and Git successfully installed on your computer. Then,
 1. Open a terminal or command prompt.
@@ -37,3 +37,36 @@ First, ensure you have Python 3.8+ and Git successfully installed on your comput
    | `source venv/bin/activate` | macOS/Linux |
    | `venv\Scripts\activate` | Windows (Command Prompt) |
    | `.\venv\Scripts\Activate.ps1` | Windows (PowerShell) |
+## Installing Dependencies
+Create a text document named `requirements.txt` inside the root directory of the project containing the following packages, then execute the installation command:
+```
+blinker==1.9.0
+certifi==2026.5.20
+charset-normalizer==3.4.7
+click==8.4.1
+colorama==0.4.6
+Flask==3.1.3
+idna==3.18
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+requests==2.34.2
+urllib3==2.7.0
+Werkzeug==3.1.8
+```
+
+```bash
+python -m pip install -r requirements.txt
+```
+## Running the Project
+```bash
+python app.py
+```
+This will start the development server, typically located at `http://127.0.0.1:5000`. If the database file does not exist, one will be created automatically when the application is executed.
+To pull upcoming events using the external API and settle concluded events, run the following scripts:
+```bash
+python sync_data.py
+```
+```bash
+python settle_scores.py
+```
