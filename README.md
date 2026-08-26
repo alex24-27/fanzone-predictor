@@ -10,6 +10,7 @@ A secure, responsive full-stack web application designed for logging, tracking, 
 ## Technology Stack
 - Backend: Python with Flask
 - Frontend: HTML with CSS
+- Database: SQLite3
 - Data Metrics Engine: Chart.js
 - External Integration Source: TheSportsDB API (https://www.thesportsdb.com/documentation)
 ## Setup and Installation
